@@ -90,7 +90,6 @@ ESPrequest PrepareSQLRequest
     [rows(28), cols(80)] string SqlText;
     string TargetCluster; //where should this be compiled
     string TargetQuerySet; //pertaining to Stored Proc calls
-    //boolean IncludeResults;
     int Wait(-1);
     //not so sure about this setting result limits in the prepare
     //int resultLimit(0);
@@ -108,7 +107,7 @@ ESPrequest ExecuteSQLRequest
     string UserName;
     string TargetCluster; //where should this compile and execute
     string TargetQuerySet; //pertaining to Stored Proc calls
-    boolean IncludeResults(true);
+    boolean SuppressResults(false);
     int Wait(-1);
     int resultLimit(0);
     int ResultWindowStart(0);
@@ -132,7 +131,7 @@ ESPrequest ExecutePreparedSQLRequest
     string UserName;
     string TargetCluster; //where should this execute
     string TargetQuerySet; //pertaining to Stored Proc calls
-    boolean IncludeResults(true);
+    boolean SuppressResults(false);
     int Wait(-1);
     int resultLimit(0);
     int ResultWindowStart(0);
