@@ -730,11 +730,7 @@ void HPCCSQLTreeWalker::expandWildCardColumn()
                             HPCCColumnMetaData col = cols->item(colidx);
                             Owned<ISQLExpression> fve = new SQLFieldValueExpression(file->getFullname(),col.getColumnName());
                             if (tableidx == 0 && colidx == 0)
-                            {
                                 selectList.replace(*fve.getLink(), selectcolidx, true);
-                                if (currexp)
-                                    currexp->Release();
-                            }
                             else
                                 selectList.add(*fve.getLink(),selectcolidx+ colidx );
                         }
@@ -755,11 +751,7 @@ void HPCCSQLTreeWalker::expandWildCardColumn()
                         HPCCColumnMetaData col = cols->item(colidx);
                         Owned<ISQLExpression> fve = new SQLFieldValueExpression(tablename, col.getColumnName());
                         if (colidx == 0)
-                        {
                             selectList.replace(*fve.getLink(), selectcolidx, true);
-                            if (currexp)
-                                        currexp->Release();
-                        }
                         else
                             selectList.add(*fve.getLink(),selectcolidx+ colidx );
                     }
@@ -768,6 +760,8 @@ void HPCCSQLTreeWalker::expandWildCardColumn()
             }
             break; //only one select all ??
         }
+        if (currexp)
+            currexp->Release();
     }
 }
 
