@@ -38,6 +38,85 @@ bool CwssqlEx::onEcho(IEspContext &context, IEspEchoRequest &req, IEspEchoRespon
     resp.setResponse(req.getRequest());
     return true;
 }
+static bool validateFunctionName(const char * fullname)
+    {
+        if (!fullname || !*fullname)
+            return false;
+
+        pHPCCSQLLexer hpccSqlLexer = NULL;
+        pANTLR3_COMMON_TOKEN_STREAM sqlTokens = NULL;
+        pANTLR3_INPUT_STREAM sqlInputStream = NULL;
+
+        bool validated = false;
+        try
+        {
+            StringBuffer fncall = "call ";
+            fncall.appendf("%s()", fullname);
+            //pANTLR3_UINT8 input_string = (pANTLR3_UINT8)fullname;
+            pANTLR3_UINT8 input_string = (pANTLR3_UINT8)fncall.str();
+            pANTLR3_INPUT_STREAM sqlinputstream = antlr3StringStreamNew(input_string,
+                    ANTLR3_ENC_8BIT,
+                    fncall.length(),
+                    //strlen(fullname),
+                    (pANTLR3_UINT8)"Function Call");
+
+            pHPCCSQLLexer hpccsqllexer = HPCCSQLLexerNew(sqlinputstream);
+
+            pANTLR3_COMMON_TOKEN_STREAM sqltokens = antlr3CommonTokenStreamSourceNew(ANTLR3_SIZE_HINT, TOKENSOURCE(hpccsqllexer));
+            if (sqltokens == NULL)
+            {
+                throw MakeStringException(-1, "Out of memory trying to allocate ANTLR HPCCSQLParser token stream.");
+            }
+
+            pANTLR3_VECTOR tvect = sqltokens->getTokens(sqltokens);
+            if (tvect->count > 3)
+            {
+                pANTLR3_COMMON_TOKEN  token = (pANTLR3_COMMON_TOKEN  )tvect->get(tvect, 0);
+                if (token->type == CALL_SYM)
+                {
+                    token = (pANTLR3_COMMON_TOKEN  )tvect->get(tvect, 3);
+                    if (token->type == ID)
+                        validated = true;
+                }
+            }
+           /* for (int i = 0; i < tvect->count; i++)
+            {
+                pANTLR3_COMMON_TOKEN  token = (pANTLR3_COMMON_TOKEN  )tvect->get(tvect, i);
+                if (token->type != ID && token->type != TOKEN_PROC_NAME)
+                {*/
+    #if defined _DEBUG
+        fprintf(stderr, "\nNot reporting file %s as supported.\n", fullname);
+    #endif
+
+            sqltokens->free(sqltokens);
+            hpccsqllexer->free(hpccsqllexer);
+            sqlinputstream->free(sqlinputstream);
+        }
+        catch(...)
+        {
+            try
+            {
+                if (sqlTokens)
+                    sqlTokens->free(sqlTokens);
+                if (hpccSqlLexer)
+                    hpccSqlLexer->free(hpccSqlLexer);
+                if (sqlInputStream)
+                    sqlInputStream->free(sqlInputStream);
+            }
+            catch (...)
+            {
+                ERRLOG("!!! Unable to free HPCCSQL parser/lexer objects.");
+            }
+
+            return false;
+        }
+
+#if defined _DEBUG
+        if (!validated)
+            fprintf(stderr, "\nNot reporting published query %s as supported.\n", fullname);
+ #endif
+        return validated;
+    }
 
 bool CwssqlEx::onGetDBMetaData(IEspContext &context, IEspGetDBMetaDataRequest &req, IEspGetDBMetaDataResponse &resp)
 {
@@ -95,7 +174,7 @@ bool CwssqlEx::onGetDBMetaData(IEspContext &context, IEspGetDBMetaDataRequest &r
                 if (qname && *qname && wuid && *wuid)
                 {
                     StringBuffer resp;
-
+                    bool a = validateFunctionName(qname);
                     Owned<IEspPublishedQuery> pubQuery = createPublishedQuery();
                     pubQuery->setName(qname);
                     pubQuery->setId(id);

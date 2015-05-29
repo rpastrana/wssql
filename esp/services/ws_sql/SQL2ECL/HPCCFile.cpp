@@ -54,7 +54,6 @@ bool HPCCFile::validateFileName(const char * fullname)
 
     try
     {
-
         pANTLR3_UINT8 input_string = (pANTLR3_UINT8)fullname;
         pANTLR3_INPUT_STREAM sqlinputstream = antlr3StringStreamNew(input_string,
                 ANTLR3_ENC_8BIT,
