@@ -74,6 +74,7 @@ INCLUDE_DIRECTORIES (
         ##added for build-config.h
         ${CMAKE_BINARY_DIR}/oss
         ${HPCC_WSSQL_SOURCE_DIR}/esp/services/ws_sql/SQL2ECL
+        ${HPCC_SOURCE_DIR}/esp/cache
         ${HPCC_SOURCE_DIR}/esp/bindings
         ${HPCC_SOURCE_DIR}/esp/bindings/SOAP/xpp
         ${HPCC_SOURCE_DIR}/esp/smc/SMCLib

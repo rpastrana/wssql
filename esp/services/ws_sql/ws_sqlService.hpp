@@ -41,6 +41,7 @@ limitations under the License.
 #include "HPCCSQLTreeWalker.hpp"
 
 #include "dautils.hpp"
+#include "espcacheclient.hpp"
 
 #define EMBEDDEDSQLQUERYCOMMENT "\n\n/****************************************************\nOriginal SQL:     \"%s\"\nNormalized SQL: \"%s\"\n****************************************************/\n"
 
@@ -65,7 +66,7 @@ private:
     BoolHash validClusters;
     CriticalSection crit;
 
-    IPropertyTree *cfg;
+    //IPropertyTree *cfg;
     std::map<std::string,std::string> cachedSQLQueries;
 
     static const unsigned int ExpireSeconds = 60 * 60;

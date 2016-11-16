@@ -20,7 +20,21 @@ limitations under the License.
 
 void CwssqlEx::init(IPropertyTree *_cfg, const char *_process, const char *_service)
 {
-    cfg = _cfg;
+
+	if(_cfg == NULL)
+		throw MakeStringException(-1, "can't initialize CwssqlEx, cfg is NULL");
+
+
+	#ifdef _DEBUG
+	    StringBuffer thexml;
+	    toXML(_cfg, thexml,0,0);
+	    DBGLOG("#########%s", thexml.str());
+	#endif
+
+	StringBuffer xpath;
+	xpath.setf("Software/EspProcess[@name=\"%s\"]/EspService[@name=\"%s\"]", _process, _service);
+	IPropertyTree* servicecfg = _cfg->getPropTree(xpath.str());
+
     try
     {
         ECLFunctions::init();
@@ -33,6 +47,47 @@ void CwssqlEx::init(IPropertyTree *_cfg, const char *_process, const char *_serv
     refreshValidClusters();
 
     setWsSqlBuildVersion(WSSQL_BASE_BUILD_TAG);
+
+
+    xpath.set("EspCacheClient");
+       IPropertyTree * cacheCfg = servicecfg->getPropTree(xpath.str());
+
+       if (cacheCfg)
+       {
+           StringBuffer xml;
+           toXML(cacheCfg, xml);
+           DBGLOG("#########%s", xml.str());
+
+           const char * name = cacheCfg->queryProp("@name");
+           const char * libName = cacheCfg->queryProp("@libName");
+           const char * methodName = cacheCfg->queryProp("@instanceFactoryName");
+
+           Owned<IEspCacheClient> cacheClient = EspCacheLoader::loadCacheClient(name, libName, methodName);
+           if (!cacheClient)
+           {
+               throw MakeStringException(-1, "Could not ensure '/ESDL' entry in dali configuration");
+			}
+			cacheClient->init("name", "type", cacheCfg);
+			CEspCacheValue  WUID("W20160202-01010001");
+			CEspCacheKey  key("select id from sometable blah");
+			cacheClient->add(key, WUID,2000);
+			if (cacheClient->contains(key))
+			{
+				DBGLOG("found!!!");
+				IEspCacheSerializable * resp = cacheClient->fetch(key);
+				if (resp)
+				{
+					DBGLOG("fetched: %s", resp->str());
+				}
+				//cacheClient->remove(key);
+				//if (cacheClient->contains(key))
+			//		DBGLOG("removed,  but found again!!!");
+			//	else
+			//		DBGLOG("removed, and not found!");
+			}
+			else
+				DBGLOG("NOT");
+		   }
 }
 
 bool CwssqlEx::onEcho(IEspContext &context, IEspEchoRequest &req, IEspEchoResponse &resp)
